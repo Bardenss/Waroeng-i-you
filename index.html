@@ -326,25 +326,6 @@ function shareBill(index) {
     link.href = imgData;
     link.click();
 
-    // Share ke WA (langsung buka WA Web / HP)
-    const waUrl = `https://wa.me/?text=${encodeURIComponent("Bill pesanan Anda:\n")}`;
-    const waBtn = document.createElement("a");
-    waBtn.href = waUrl;
-    waBtn.target = "_blank";
-    waBtn.click();
-
-    // Kalau device support Web Share API → bisa share ke Telegram/WA app langsung
-    if (navigator.share) {
-      canvas.toBlob(blob => {
-        const file = new File([blob], `${bill.name}.png`, { type: "image/png" });
-        navigator.share({
-          title: "Bill Pesanan",
-          text: "Berikut bill pesanan Anda.",
-          files: [file]
-        });
-      });
-    }
-
     document.body.removeChild(div);
   });
 }
