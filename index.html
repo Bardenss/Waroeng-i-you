@@ -280,68 +280,67 @@
   const div = document.createElement("div");
   div.style.padding = "20px";
   div.style.background = "white";
-  div.style.width = "300px"; // biar mirip kertas struk
+  div.style.border = "2px solid #333";
+  div.style.borderRadius = "10px";
+  div.style.width = "300px"; 
   div.style.fontFamily = "Arial, sans-serif";
-  div.style.fontSize = "14px";
+
   div.innerHTML = `
-    <div style="text-align:center;">
-      <img src="https://raw.githubusercontent.com/Bardenss/Waroeng-i-you/main/Logo.png" width="100"><br>
+    <div style="text-align:center; margin-bottom:10px;">
+      <img src="https://raw.githubusercontent.com/Bardenss/Waroeng-i-you/main/Logo.png" 
+           width="100" crossOrigin="anonymous"><br>
       <b>PONDOK KULINER I YOU</b><br>
       Jl, Namu Ukur - Telagah - Tanjung Karo<br>
       Telp: 082164753151<br>
     </div>
-    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
-    <p>Tanggal: ${bill.time}</p>
-    <p>No Bill: ${bill.name}</p>
-    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+    <hr>
+    <p><b>Tanggal:</b> ${bill.time}</p>
+    <p><b>No Bill:</b> ${bill.name}</p>
+    <hr>
     <ul style="list-style:none; padding:0; margin:0;">
       ${bill.items.map((i, idx)=>`
-        <li style="margin:4px 0;">
+        <li style="margin:5px 0;">
           ${idx+1}. ${i.name}<br>
           ${i.qty} x ${formatRupiah(i.price)} 
           <span style="float:right;">${formatRupiah(i.price*i.qty)}</span>
         </li>
       `).join("")}
     </ul>
-    <div style="border-top:1px dashed #000; margin:8px 0; clear:both;"></div>
+    <hr>
     <p><b>Total Qty:</b> ${bill.items.reduce((sum,i)=>sum+i.qty,0)}</p>
     <p><b>Sub Total:</b> ${formatRupiah(bill.total)}</p>
-    <p style="font-weight:bold; font-size:16px;">Total: ${formatRupiah(bill.total)}</p>
+    <p style="font-size:16px; font-weight:bold;">Total: ${formatRupiah(bill.total)}</p>
     <p>Bayar (Cash): ${formatRupiah(bill.total)}</p>
-    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+    <hr>
     <p style="text-align:center;">Terimakasih Telah Berbelanja</p>
   `;
 
   document.body.appendChild(div);
 
-  html2canvas(div).then(canvas => {
-    document.body.removeChild(div);
+  html2canvas(div, { useCORS: true }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
 
-    // Download otomatis
+    // Simpan sebagai file
     const link = document.createElement("a");
     link.download = `${bill.name.replace(/\s+/g,"_")}.png`;
-    link.href = canvas.toDataURL();
+    link.href = imgData;
     link.click();
 
-    // Share ke WA/Telegram jika HP support Web Share API
+    // Bisa langsung share ke WA (kalau di HP)
     if (navigator.share) {
       canvas.toBlob(blob => {
         const file = new File([blob], `${bill.name}.png`, { type: "image/png" });
         navigator.share({
-          files: [file],
-          title: "Bill - PONDOK KULINER I YOU",
-          text: "Struk belanja Anda"
-        }).catch(err => console.log("Share dibatalkan:", err));
+          title: "Bill Pesanan",
+          text: "Berikut bill pesanan Anda.",
+          files: [file]
+        });
       });
-    } else {
-      // fallback share teks saja
-      let text = `Bill - PONDOK KULINER I YOU\nNo Bill: ${bill.name}\nTotal: ${formatRupiah(bill.total)}`;
-      let waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-      window.open(waUrl, "_blank");
     }
+
+    document.body.removeChild(div);
   });
 }
-
     // Cetak bill
     function printBill(index) {
   const bill = selesai[index];
