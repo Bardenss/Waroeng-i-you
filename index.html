@@ -14,7 +14,8 @@
     .hidden { display: none; }
     .bill-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
     .menu-section { margin: 15px 0; }
-    .menu-buttons button { display:block; width:100%; padding:10px; margin:5px 0; border:none; border-radius:8px; background:#2d89ef; color:white; font-weight:600; cursor:pointer; }
+    .menu-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .menu-buttons button { width:100%; padding:10px; border:none; border-radius:8px; background:#2d89ef; color:white; font-weight:600; cursor:pointer; }
     .menu-buttons button:hover { background:#1d5fad; }
     .total { font-weight: bold; margin-top: 12px; font-size: 16px; }
     input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; }
@@ -28,6 +29,11 @@
     details summary { cursor: pointer; font-weight: bold; }
     .danger { background:#dc3545; color:white; padding:10px; border:none; border-radius:6px; margin-top:10px; cursor:pointer; width:100%; font-weight:600; }
     .danger:hover { background:#a71d2a; }
+    .share-btn, .print-btn { margin-top: 10px; padding: 8px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; width: 48%; }
+    .share-btn { background:#007bff; color:white; }
+    .share-btn:hover { background:#0056b3; }
+    .print-btn { background:#6c757d; color:white; }
+    .print-btn:hover { background:#494f54; }
   </style>
 </head>
 <body>
@@ -53,6 +59,11 @@
       <h2>Buat Bill Baru</h2>
       <input type="text" id="billName" placeholder="Nama Bill (contoh: Meja 1)">
       
+      <h3>Rincian Bill</h3>
+      <ul id="billItems"></ul>
+      <p class="total">Total: <span id="billTotal">Rp0</span></p>
+      <button class="confirm" onclick="confirmBill()">Confirm Pesanan</button>
+
       <div class="menu-section">
         <h3>Makanan</h3>
         <div class="menu-buttons">
@@ -74,7 +85,6 @@
           <button onclick="addItem('Pecel Lele',15000)">Pecel Lele</button>
           <button onclick="addItem('Tempe Goreng',10000)">Tempe Goreng</button>
           <button onclick="addItem('Nugget',10000)">Nugget</button>
-          <button onclick="addItem('Pecel Lele',15000)">Pecel Lele</button>
         </div>
       </div>
 
@@ -109,11 +119,6 @@
           <button onclick="addItem('Sisri',3000)">Sisri</button>
         </div>
       </div>
-
-      <h3>Rincian Bill</h3>
-      <ul id="billItems"></ul>
-      <p class="total">Total: <span id="billTotal">Rp0</span></p>
-      <button class="confirm" onclick="confirmBill()">Confirm Pesanan</button>
     </div>
 
     <!-- History -->
@@ -137,6 +142,9 @@
     <button onclick="showTab('selesaiTab', this)">Selesai</button>
     <button onclick="showTab('historyTab', this)">History</button>
   </div>
+
+  <!-- Library html2canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script>
     function formatRupiah(num) {
@@ -249,17 +257,78 @@
     function renderSelesai() {
       const container = document.getElementById("selesaiList");
       container.innerHTML = "";
-      selesai.forEach(bill => {
+      selesai.forEach((bill, idx) => {
         const details = document.createElement("details");
         details.className = "bill-card";
         details.innerHTML = `
           <summary>${bill.name} - ${bill.time}</summary>
           <ul>${bill.items.map(i=>`<li>${i.name} x${i.qty} - ${formatRupiah(i.price*i.qty)}</li>`).join("")}</ul>
           <p class="total">Total: ${formatRupiah(bill.total)}</p>
+          <div style="display:flex; gap:4%">
+            <button class="share-btn" onclick="shareBill(${idx})">Share Bill</button>
+            <button class="print-btn" onclick="printBill(${idx})">Print Bill</button>
+          </div>
         `;
         container.appendChild(details);
       });
       document.getElementById("totalIncome").innerText = formatRupiah(totalIncome);
+    }
+
+    // Generate PNG untuk share
+    function shareBill(index) {
+      const bill = selesai[index];
+      const div = document.createElement("div");
+      div.style.padding = "20px";
+      div.style.background = "white";
+      div.style.border = "2px solid #333";
+      div.style.borderRadius = "10px";
+      div.innerHTML = `
+        <h2 style="text-align:center; margin:0; color:#2d89ef;">WARUNG I YOU</h2>
+        <p style="text-align:center;">${bill.time}</p>
+        <h3>${bill.name}</h3>
+        <ul>${bill.items.map(i=>`<li>${i.name} x${i.qty} - ${formatRupiah(i.price*i.qty)}</li>`).join("")}</ul>
+                <p style="font-weight:bold; font-size:16px;">Total: ${formatRupiah(bill.total)}</p>
+      `;
+      document.body.appendChild(div);
+      html2canvas(div).then(canvas => {
+        const link = document.createElement("a");
+        link.download = `${bill.name.replace(/\s+/g,"_")}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+        document.body.removeChild(div);
+      });
+    }
+
+    // Cetak bill
+    function printBill(index) {
+      const bill = selesai[index];
+      let printWindow = window.open("", "_blank");
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Bill - ${bill.name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding:20px; }
+            h2 { text-align:center; color:#2d89ef; margin-bottom:5px; }
+            h3 { margin-top:15px; }
+            ul { list-style:none; padding:0; }
+            li { margin:5px 0; }
+            p.total { font-weight:bold; margin-top:10px; }
+          </style>
+        </head>
+        <body>
+          <h2>WARUNG I YOU</h2>
+          <p style="text-align:center;">${bill.time}</p>
+          <h3>${bill.name}</h3>
+          <ul>
+            ${bill.items.map(i=>`<li>${i.name} x${i.qty} - ${formatRupiah(i.price*i.qty)}</li>`).join("")}
+          </ul>
+          <p class="total">Total: ${formatRupiah(bill.total)}</p>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
     }
 
     function testMidnight() { resetMidnight(); }
