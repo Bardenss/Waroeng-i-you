@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARUNG I YOU</title>
+  <style>
+    body { font-family: 'Poppins', sans-serif; margin: 0; background: #f9fafc; color: #333; display: flex; flex-direction: column; height: 100vh; }
+    header { padding: 15px; text-align: center; background: #2d89ef; color: white; font-size: 20px; font-weight: bold; flex-shrink: 0; }
+    .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 70px; }
+    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: #fff; border-top: 1px solid #ddd; z-index: 100; }
+    .tab-bar button { flex: 1; padding: 14px; font-size: 16px; border: none; background: none; cursor: pointer; font-weight: 500; }
+    .tab-bar button.active { background: #2d89ef; color: white; }
+    .hidden { display: none; }
+    .bill-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
+    .menu-section { margin: 15px 0; }
+    .menu-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .menu-buttons button { width:100%; padding:10px; border:none; border-radius:8px; background:#2d89ef; color:white; font-weight:600; cursor:pointer; }
+    .menu-buttons button:hover { background:#1d5fad; }
+    .total { font-weight: bold; margin-top: 12px; font-size: 16px; }
+    input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; }
+    button.confirm { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; background: #28a745; color: white; font-size: 16px; font-weight: 600; cursor: pointer; }
+    button.confirm:hover { background: #1e7e34; }
+    button.pay, button.edit { margin-top: 10px; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; width: 48%; }
+    button.pay { background: #ffc107; color: #333; }
+    button.pay:hover { background: #e0a800; }
+    button.edit { background: #17a2b8; color: white; }
+    button.edit:hover { background: #117a8b; }
+    details summary { cursor: pointer; font-weight: bold; }
+    .danger { background:#dc3545; color:white; padding:10px; border:none; border-radius:6px; margin-top:10px; cursor:pointer; width:100%; font-weight:600; }
+    .danger:hover { background:#a71d2a; }
+    .share-btn, .print-btn { margin-top: 10px; padding: 8px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; width: 48%; }
+    .share-btn { background:#007bff; color:white; }
+    .share-btn:hover { background:#0056b3; }
+    .print-btn { background:#6c757d; color:white; }
+    .print-btn:hover { background:#494f54; }
+
+    /* Modal Addon & Drink */
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:200; }
+    .modal-content { background:white; padding:20px; border-radius:10px; width:80%; max-width:300px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.2); }
+    .modal-content h3 { margin-bottom:15px; }
+    .modal-buttons button { display:block; width:100%; margin:6px 0; padding:10px; border:none; border-radius:8px; background:#2d89ef; color:white; font-weight:bold; cursor:pointer; }
+    .modal-buttons button:hover { background:#1d5fad; }
+  </style>
+</head>
+<body>
+  <header>WARUNG I YOU</header>
+
+  <div class="content">
+    <!-- Pesanan -->
+    <div id="pesananTab" class="tab-content hidden">
+      <h2>Pesanan Belum Dibayar</h2>
+      <div id="pesananList"></div>
+    </div>
+
+    <!-- Selesai -->
+    <div id="selesaiTab" class="tab-content hidden">
+      <h2>Pesanan Selesai</h2>
+      <div id="selesaiList"></div>
+      <p class="total">Total Pemasukan: <span id="totalIncome">Rp0</span></p>
+      <button onclick="testMidnight()" class="danger">TUTUP WARUNG</button>
+    </div>
+
+    <!-- Menu -->
+    <div id="menuTab" class="tab-content">
+      <h2>Buat Bill Baru</h2>
+      <input type="text" id="billName" placeholder="Nama Bill (contoh: Meja 1)">
+      
+      <h3>Rincian Bill</h3>
+      <ul id="billItems"></ul>
+      <p class="total">Total: <span id="billTotal">Rp0</span></p>
+      <button class="confirm" onclick="confirmBill()">Confirm Pesanan</button>
+
+      <div class="menu-section">
+        <h3>Makanan</h3>
+        <div class="menu-buttons">
+          <button onclick="addItemWithAddon('Bakso Mie',10000)">Bakso Mie</button>
+          <button onclick="addItemWithAddon('Bakso Kosong',8000)">Bakso Kosong</button>
+          <button onclick="addItemWithAddon('Mie Ayam',10000)">Mie Ayam</button>
+          <button onclick="addItemWithAddon('Mie Ayam Bakso',13000)">Mie Ayam Bakso</button>
+          <button onclick="addItemWithAddon('Mie Sop Kampung',8000)">Mie Sop Kampung</button>
+          <button onclick="addItemWithAddon('Nasi Goreng/Kampung',13000)">Nasi Goreng/Kampung</button>
+          <button onclick="addItemWithAddon('Nasi Goreng Special',20000)">Nasi Goreng Special</button>
+          <button onclick="addItemWithAddon('Nasi Ayam Penyet',15000)">Nasi Ayam Penyet</button>
+          <button onclick="addItemWithAddon('Nasi Ayam Bakar',15000)">Nasi Ayam Bakar</button>
+          <button onclick="addItemWithAddon('Nasi Ikan Nila Bakar',23000)">Nasi Ikan Nila Bakar</button>
+          <button onclick="addItemWithAddon('Ifumie Goreng/Kuah',12000)">Ifumie Goreng/Kuah</button>
+          <button onclick="addItemWithAddon('Mie Tiaw Goreng/Kuah',12000)">Mie Tiaw Goreng/Kuah</button>
+          <button onclick="addItemWithAddon('Mie Kuning Goreng/Kuah',12000)">Mie Kuning Goreng/Kuah</button>
+          <button onclick="addItemWithAddon('Mie Hun Goreng/Kuah',12000)">Mie Hun Goreng/Kuah</button>
+          <button onclick="addItemWithAddon('Indomie Goreng/Kuah',12000)">Indomie Goreng/Kuah</button>
+          <button onclick="addItemWithAddon('Pecel Lele',15000)">Pecel Lele</button>
+          <button onclick="addItemWithAddon('Tempe Goreng',10000)">Tempe Goreng</button>
+          <button onclick="addItemWithAddon('Nugget',10000)">Nugget</button>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <h3>Minuman</h3>
+        <div class="menu-buttons">
+          <button onclick="addDrink('Jus Jeruk',10000)">Jus Jeruk</button>
+          <button onclick="addDrink('Jus Naga',10000)">Jus Naga</button>
+          <button onclick="addDrink('Jus Alpukat',10000)">Jus Alpukat</button>
+          <button onclick="addDrink('Kopi Hitam',5000)">Kopi Hitam</button>
+          <button onclick="addDrink('Teh Manis',4000)">Teh Manis</button>
+          <button onclick="addDrink('Teh Mandi',5000)">Teh Mandi</button>
+          <button onclick="addDrink('Lemon Tea',10000)">Lemon Tea</button>
+          <button onclick="addDrink('Susu',6000)">Susu</button>
+          <button onclick="addDrink('Kopi Susu',7000)">Kopi Susu</button>
+          <button onclick="addDrink('Teh Susu',7000)">Teh Susu</button>
+          <button onclick="addDrink('Nutrisari',3000)">Nutrisari</button>
+          <button onclick="addDrink('Teh Botol',7000)">Teh Botol</button>
+          <button onclick="addDrink('Fanta',7000)">Fanta</button>
+          <button onclick="addDrink('Sprite',7000)">Sprite</button>
+          <button onclick="addDrink('Aqua',5000)">Aqua</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div id="historyTab" class="tab-content hidden">
+      <h2>History Pesanan</h2>
+      <label>Pilih tanggal awal</label>
+      <input type="date" id="startDate">
+      <label>Pilih tanggal akhir</label>
+      <input type="date" id="endDate">
+      <button onclick="showHistory()">Tampilkan History</button>
+      <button onclick="showTopMenu()">⭐ Top Menu</button>
+      <div id="historyList"></div>
+      <button onclick="clearAll()" class="danger">Clear All</button>
+    </div>
+  </div>
+
+  <!-- Tab Navigasi -->
+  <div class="tab-bar">
+    <button class="active" onclick="showTab('menuTab', this)">Menu</button>
+    <button onclick="showTab('pesananTab', this)">Pesanan</button>
+    <button onclick="showTab('selesaiTab', this)">Selesai</button>
+    <button onclick="showTab('historyTab', this)">History</button>
+  </div>
+
+  <!-- Modal Addon -->
+  <div id="addonModal" class="modal">
+    <div class="modal-content">
+      <h3>Pilih Tambahan</h3>
+      <div class="modal-buttons" id="addonOptions"></div>
+      <button onclick="closeAddonModal()">Batal</button>
+    </div>
+  </div>
+
+  <!-- Modal Drink -->
+  <div id="drinkModal" class="modal">
+    <div class="modal-content">
+      <h3>Pilih Jenis Minuman</h3>
+      <div class="modal-buttons">
+        <button onclick="selectDrinkType('panas')">🔥 Panas (-1000)</button>
+        <button onclick="selectDrinkType('dingin')">❄️ Dingin (+1000)</button>
+        <button onclick="selectDrinkType('normal')">Normal</button>
+      </div>
+      <button onclick="closeDrinkModal()">Batal</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    function formatRupiah(num){return "Rp"+num.toString().replace(/\B(?=(\d{3})+(?!\d))/g,".");}
+    let currentBill={name:"",items:[],total:0};
+    let pesanan=JSON.parse(localStorage.getItem("pesanan"))||[];
+    let selesai=JSON.parse(localStorage.getItem("selesai"))||[];
+    let totalIncome=parseInt(localStorage.getItem("totalIncome"))||0;
+    let history=JSON.parse(localStorage.getItem("history"))||[];
+    function saveData(){ localStorage.setItem("pesanan",JSON.stringify(pesanan)); localStorage.setItem("selesai",JSON.stringify(selesai)); localStorage.setItem("totalIncome",totalIncome); localStorage.setItem("history",JSON.stringify(history)); }
+
+    // --- Addon Modal ---
+    const addons=[{name:"Nasi",price:5000},{name:"Telur",price:3000},{name:"Ayam",price:10000}];
+    let tempItem=null;
+    function addItemWithAddon(name,price){ tempItem={name,basePrice:price}; const container=document.getElementById("addonOptions"); container.innerHTML=""; addons.forEach(a=>{ const btn=document.createElement("button"); btn.innerText=`${a.name} (+${formatRupiah(a.price)})`; btn.onclick=()=>selectAddon(a); container.appendChild(btn); }); const noBtn=document.createElement("button"); noBtn.innerText="Tanpa Tambahan"; noBtn.onclick=()=>selectAddon(null); container.appendChild(noBtn); document.getElementById("addonModal").style.display="flex"; }
+    function selectAddon(addon){ let finalPrice=tempItem.basePrice; let addonNames=[]; if(addon){ finalPrice+=addon.price; addonNames.push(addon.name);} let item=currentBill.items.find(i=>i.name===tempItem.name && JSON.stringify(i.addon||[])===JSON.stringify(addonNames)); if(item){item.qty++;}else{currentBill.items.push({name:tempItem.name,price:finalPrice,qty:1,addon:addonNames});} calculateTotal(); renderBillItems(); closeAddonModal();}
+    function closeAddonModal(){document.getElementById("addonModal").style.display="none";}
+
+    // --- Drink Modal ---
+    function addDrink(name,price){tempItem={name,basePrice:price}; document.getElementById("drinkModal").style.display="flex";}
+    function selectDrinkType(type){ let finalPrice=tempItem.basePrice; if(type==="panas") finalPrice-=1000; if(type==="dingin") finalPrice+=1000; let item=currentBill.items.find(i=>i.name===tempItem.name && i.type===type); if(item){item.qty++;}else{currentBill.items.push({name:tempItem.name,price:finalPrice,qty:1,type});} calculateTotal(); renderBillItems(); closeDrinkModal();}
+    function closeDrinkModal(){document.getElementById("drinkModal").style.display="none";}
+
+    // --- Fungsi lama sama persis ---
+    function addItem(name, price) { let item = currentBill.items.find(i => i.name === name); if(item){item.qty++;} else{currentBill.items.push({name,price,qty:1});} calculateTotal(); renderBillItems(); }
+    function calculateTotal(){ currentBill.total=currentBill.items.reduce((sum,i)=>sum+i.price*i.qty,0); }
+    function renderBillItems(){ const billItems=document.getElementById("billItems"); billItems.innerHTML=""; currentBill.items.forEach((item,idx)=>{ let addonText=item.addon?` (${item.addon.join(", ")})`:item.type?` (${item.type})`:""; const li=document.createElement("li"); li.innerHTML=`${item.name}${addonText} (x${item.qty}) - ${formatRupiah(item.price*item.qty)} <button style="margin-left:10px;color:red;" onclick="removeOne(${idx})">❌</button>`; billItems.appendChild(li); }); document.getElementById("billTotal").innerText=formatRupiah(currentBill.total);}
+    function removeOne(idx){ if(currentBill.items[idx].qty>1){currentBill.items[idx].qty--;}else{currentBill.items.splice(idx,1);} calculateTotal(); renderBillItems(); }
+
+    function showTab(tabId, btn){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden')); document.getElementById(tabId).classList.remove('hidden'); document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+  </script>
+</body>
+</html>
