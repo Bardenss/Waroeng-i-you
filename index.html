@@ -276,60 +276,122 @@
 
     // Generate PNG untuk share
     function shareBill(index) {
-      const bill = selesai[index];
-      const div = document.createElement("div");
-      div.style.padding = "20px";
-      div.style.background = "white";
-      div.style.border = "2px solid #333";
-      div.style.borderRadius = "10px";
-      div.innerHTML = `
-        <h2 style="text-align:center; margin:0; color:#2d89ef;">WARUNG I YOU</h2>
-        <p style="text-align:center;">${bill.time}</p>
-        <h3>${bill.name}</h3>
-        <ul>${bill.items.map(i=>`<li>${i.name} x${i.qty} - ${formatRupiah(i.price*i.qty)}</li>`).join("")}</ul>
-                <p style="font-weight:bold; font-size:16px;">Total: ${formatRupiah(bill.total)}</p>
-      `;
-      document.body.appendChild(div);
-      html2canvas(div).then(canvas => {
-        const link = document.createElement("a");
-        link.download = `${bill.name.replace(/\s+/g,"_")}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-        document.body.removeChild(div);
+  const bill = selesai[index];
+  const div = document.createElement("div");
+  div.style.padding = "20px";
+  div.style.background = "white";
+  div.style.width = "300px"; // biar mirip kertas struk
+  div.style.fontFamily = "Arial, sans-serif";
+  div.style.fontSize = "14px";
+  div.innerHTML = `
+    <div style="text-align:center;">
+      <img src="https://raw.githubusercontent.com/Bardenss/Waroeng-i-you/main/Logo.png" width="100"><br>
+      <b>PONDOK KULINER I YOU</b><br>
+      Jl, Namu Ukur - Telagah - Tanjung Karo<br>
+      Telp: 082164753151<br>
+    </div>
+    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+    <p>Tanggal: ${bill.time}</p>
+    <p>No Bill: ${bill.name}</p>
+    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+    <ul style="list-style:none; padding:0; margin:0;">
+      ${bill.items.map((i, idx)=>`
+        <li style="margin:4px 0;">
+          ${idx+1}. ${i.name}<br>
+          ${i.qty} x ${formatRupiah(i.price)} 
+          <span style="float:right;">${formatRupiah(i.price*i.qty)}</span>
+        </li>
+      `).join("")}
+    </ul>
+    <div style="border-top:1px dashed #000; margin:8px 0; clear:both;"></div>
+    <p><b>Total Qty:</b> ${bill.items.reduce((sum,i)=>sum+i.qty,0)}</p>
+    <p><b>Sub Total:</b> ${formatRupiah(bill.total)}</p>
+    <p style="font-weight:bold; font-size:16px;">Total: ${formatRupiah(bill.total)}</p>
+    <p>Bayar (Cash): ${formatRupiah(bill.total)}</p>
+    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+    <p style="text-align:center;">Terimakasih Telah Berbelanja</p>
+  `;
+
+  document.body.appendChild(div);
+
+  html2canvas(div).then(canvas => {
+    document.body.removeChild(div);
+
+    // Download otomatis
+    const link = document.createElement("a");
+    link.download = `${bill.name.replace(/\s+/g,"_")}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+
+    // Share ke WA/Telegram jika HP support Web Share API
+    if (navigator.share) {
+      canvas.toBlob(blob => {
+        const file = new File([blob], `${bill.name}.png`, { type: "image/png" });
+        navigator.share({
+          files: [file],
+          title: "Bill - PONDOK KULINER I YOU",
+          text: "Struk belanja Anda"
+        }).catch(err => console.log("Share dibatalkan:", err));
       });
+    } else {
+      // fallback share teks saja
+      let text = `Bill - PONDOK KULINER I YOU\nNo Bill: ${bill.name}\nTotal: ${formatRupiah(bill.total)}`;
+      let waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, "_blank");
     }
+  });
+}
 
     // Cetak bill
     function printBill(index) {
-      const bill = selesai[index];
-      let printWindow = window.open("", "_blank");
-      printWindow.document.write(`
-        <html>
-        <head>
-          <title>Bill - ${bill.name}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding:20px; }
-            h2 { text-align:center; color:#2d89ef; margin-bottom:5px; }
-            h3 { margin-top:15px; }
-            ul { list-style:none; padding:0; }
-            li { margin:5px 0; }
-            p.total { font-weight:bold; margin-top:10px; }
-          </style>
-        </head>
-        <body>
-          <h2>WARUNG I YOU</h2>
-          <p style="text-align:center;">${bill.time}</p>
-          <h3>${bill.name}</h3>
-          <ul>
-            ${bill.items.map(i=>`<li>${i.name} x${i.qty} - ${formatRupiah(i.price*i.qty)}</li>`).join("")}
-          </ul>
-          <p class="total">Total: ${formatRupiah(bill.total)}</p>
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
+  const bill = selesai[index];
+  let printWindow = window.open("", "_blank");
+  printWindow.document.write(`
+    <html>
+    <head>
+      <title>Bill - ${bill.name}</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size:14px; }
+        .center { text-align:center; }
+        .line { border-top:1px dashed #000; margin:8px 0; }
+        ul { list-style:none; padding:0; margin:0; }
+        li { margin:4px 0; }
+        .total { font-weight:bold; font-size:16px; margin-top:10px; }
+      </style>
+    </head>
+    <body>
+      <div class="center">
+        <img src="https://raw.githubusercontent.com/Bardenss/Waroeng-i-you/main/Logo.png" width="80"><br>
+        <b>PONDOK KULINER I YOU</b><br>
+        Jl, Namu Ukur - Telagah - Tanjung Karo<br>
+        Telp: 082164753151<br>
+      </div>
+      <div class="line"></div>
+      <p>Tanggal: ${bill.time}</p>
+      <p>No Bill: ${bill.name}</p>
+      <div class="line"></div>
+      <ul>
+        ${bill.items.map((i, idx)=>`
+          <li>${idx+1}. ${i.name}<br>
+              ${i.qty} x ${formatRupiah(i.price)} 
+              <span style="float:right;">${formatRupiah(i.price*i.qty)}</span>
+          </li>
+        `).join("")}
+      </ul>
+      <div class="line"></div>
+      <p><b>Total Qty:</b> ${bill.items.reduce((sum,i)=>sum+i.qty,0)}</p>
+      <p><b>Sub Total:</b> ${formatRupiah(bill.total)}</p>
+      <p class="total">Total: ${formatRupiah(bill.total)}</p>
+      <p>Bayar (Cash): ${formatRupiah(bill.total)}</p>
+      <p>Kembali: Rp0</p>
+      <div class="line"></div>
+      <p class="center">Terimakasih Telah Berbelanja</p>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+}
 
     function testMidnight() { resetMidnight(); }
 
