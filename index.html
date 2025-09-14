@@ -72,8 +72,10 @@
       <p class="total">Total: <span id="billTotal">Rp0</span></p>
       <button class="confirm" onclick="confirmBill()">Confirm Pesanan</button>
 
-      <div class="menu-section">
-        <h3>Makanan</h3>
+<!-- Makanan -->
+<div class="menu-section">
+  <h3>Makanan</h3>
+  <div class="menu-buttons" id="foodButtons">
     <button onclick="showAddon('Bakso Mie',10000)">Bakso Mie</button>
     <button onclick="showAddon('Bakso Kosong',8000)">Bakso Kosong</button>
     <button onclick="showAddon('Mie Ayam',10000)">Mie Ayam</button>
@@ -92,13 +94,14 @@
     <button onclick="showAddon('Pecel Lele',15000)">Pecel Lele</button>
     <button onclick="showAddon('Tempe Goreng',10000)">Tempe Goreng</button>
     <button onclick="showAddon('Nugget',10000)">Nugget</button>
-        </div>
-      </div>
+  </div>
+</div>
 
-      <div class="menu-section">
-        <h3>Minuman</h3>
-        <div class="menu-buttons" id="drinkButtons">
-   <button onclick="showDrink('Jus Jeruk',10000)">Jus Jeruk</button>
+<!-- Minuman -->
+<div class="menu-section">
+  <h3>Minuman</h3>
+  <div class="menu-buttons" id="drinkButtons">
+    <button onclick="showDrink('Jus Jeruk',10000)">Jus Jeruk</button>
     <button onclick="showDrink('Jus Naga',10000)">Jus Naga</button>
     <button onclick="showDrink('Jus Alpukat',10000)">Jus Alpukat</button>
     <button onclick="showDrink('Jus Kuini',10000)">Jus Kuini</button>
@@ -124,8 +127,8 @@
     <button onclick="showDrink('Sprite',7000)">Sprite</button>
     <button onclick="showDrink('Aqua',5000)">Aqua</button>
     <button onclick="showDrink('Sisri',3000)">Sisri</button>
-        </div>
-      </div>
+  </div>
+</div>
     </div>
 
     <!-- History -->
