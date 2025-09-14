@@ -248,7 +248,7 @@
           <ul>${bill.items.map(i=>`<li>${i.name} x${i.qty} - ${formatRupiah(i.price*i.qty)}</li>`).join("")}</ul>
           <p class="total">Total: ${formatRupiah(bill.total)}</p>
           <div style="display:flex; gap:4%">
-            <button class="share-btn" onclick="shareBill(${idx})">Share Bill</button>
+            <button class="share-btn" onclick="downloadBill(${idx})">Download Bill</button>
             <button class="print-btn" onclick="printBill(${idx})">Print Bill</button>
           </div>
         `;
@@ -312,60 +312,8 @@
       tempItem = null;
     }
 
-    function shareBill(index) {
-  const bill = selesai[index];
-  const div = document.createElement("div");
-  div.style.padding = "10px";
-  div.style.background = "white";
-  div.style.width = "280px"; 
-  div.style.fontFamily = "Arial, sans-serif";
-  div.style.fontSize = "14px";
-
-  div.innerHTML = `
-    <div class="center" style="text-align:center;">
-      <img src="https://raw.githubusercontent.com/Bardenss/Waroeng-i-you/main/Logo.png" 
-           width="80" crossOrigin="anonymous"><br>
-      <b>PONDOK KULINER I YOU</b><br>
-      Jl, Namu Ukur - Telagah - Tanjung Karo<br>
-      Telp: 082164753151<br>
-    </div>
-    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
-    <p>Tanggal: ${bill.time}</p>
-    <p>No Bill: ${bill.name}</p>
-    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
-    <ul style="list-style:none; padding:0; margin:0;">
-      ${bill.items.map((i, idx)=>`
-        <li style="margin:4px 0;">
-          ${idx+1}. ${i.name}<br>
-          ${i.qty} x ${formatRupiah(i.price)} 
-          <span style="float:right;">${formatRupiah(i.price*i.qty)}</span>
-        </li>
-      `).join("")}
-    </ul>
-    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
-    <p><b>Total Qty:</b> ${bill.items.reduce((sum,i)=>sum+i.qty,0)}</p>
-    <p><b>Sub Total:</b> ${formatRupiah(bill.total)}</p>
-    <p style="font-size:16px; font-weight:bold;">Total: ${formatRupiah(bill.total)}</p>
-    <p>Bayar (Cash): ${formatRupiah(bill.total)}</p>
-    <p>Kembali: Rp0</p>
-    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
-    <p style="text-align:center;">Terimakasih Telah Berbelanja</p>
-  `;
-
-  document.body.appendChild(div);
-
-  html2canvas(div, { useCORS: true }).then(canvas => {
-    const imgData = canvas.toDataURL("image/png");
-
-    // Simpan sebagai file
-    const link = document.createElement("a");
-    link.download = `${bill.name.replace(/\s+/g,"_")}.png`;
-    link.href = imgData;
-    link.click();
-
-    document.body.removeChild(div);
-  });
-}
+    null;
+    }
     // Cetak bill
     function printBill(index) {
   const bill = selesai[index];
