@@ -275,43 +275,43 @@
     }
 
     // Generate PNG untuk share
-    function shareBill(index) {
+function shareBill(index) {
   const bill = selesai[index];
   const div = document.createElement("div");
-  div.style.padding = "20px";
+  div.style.padding = "10px";
   div.style.background = "white";
-  div.style.border = "2px solid #333";
-  div.style.borderRadius = "10px";
-  div.style.width = "300px"; 
+  div.style.width = "280px"; 
   div.style.fontFamily = "Arial, sans-serif";
+  div.style.fontSize = "14px";
 
   div.innerHTML = `
-    <div style="text-align:center; margin-bottom:10px;">
+    <div class="center" style="text-align:center;">
       <img src="https://raw.githubusercontent.com/Bardenss/Waroeng-i-you/main/Logo.png" 
-           width="100" crossOrigin="anonymous"><br>
+           width="80" crossOrigin="anonymous"><br>
       <b>PONDOK KULINER I YOU</b><br>
       Jl, Namu Ukur - Telagah - Tanjung Karo<br>
       Telp: 082164753151<br>
     </div>
-    <hr>
-    <p><b>Tanggal:</b> ${bill.time}</p>
-    <p><b>No Bill:</b> ${bill.name}</p>
-    <hr>
+    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+    <p>Tanggal: ${bill.time}</p>
+    <p>No Bill: ${bill.name}</p>
+    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
     <ul style="list-style:none; padding:0; margin:0;">
       ${bill.items.map((i, idx)=>`
-        <li style="margin:5px 0;">
+        <li style="margin:4px 0;">
           ${idx+1}. ${i.name}<br>
           ${i.qty} x ${formatRupiah(i.price)} 
           <span style="float:right;">${formatRupiah(i.price*i.qty)}</span>
         </li>
       `).join("")}
     </ul>
-    <hr>
+    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
     <p><b>Total Qty:</b> ${bill.items.reduce((sum,i)=>sum+i.qty,0)}</p>
     <p><b>Sub Total:</b> ${formatRupiah(bill.total)}</p>
     <p style="font-size:16px; font-weight:bold;">Total: ${formatRupiah(bill.total)}</p>
     <p>Bayar (Cash): ${formatRupiah(bill.total)}</p>
-    <hr>
+    <p>Kembali: Rp0</p>
+    <div style="border-top:1px dashed #000; margin:8px 0;"></div>
     <p style="text-align:center;">Terimakasih Telah Berbelanja</p>
   `;
 
@@ -326,7 +326,14 @@
     link.href = imgData;
     link.click();
 
-    // Bisa langsung share ke WA (kalau di HP)
+    // Share ke WA (langsung buka WA Web / HP)
+    const waUrl = `https://wa.me/?text=${encodeURIComponent("Bill pesanan Anda:\n")}`;
+    const waBtn = document.createElement("a");
+    waBtn.href = waUrl;
+    waBtn.target = "_blank";
+    waBtn.click();
+
+    // Kalau device support Web Share API → bisa share ke Telegram/WA app langsung
     if (navigator.share) {
       canvas.toBlob(blob => {
         const file = new File([blob], `${bill.name}.png`, { type: "image/png" });
