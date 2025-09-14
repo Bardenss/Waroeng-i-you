@@ -40,6 +40,9 @@
     .print-btn { background:#6c757d; color:white; }
     .print-btn:hover { background:#494f54; }
   </style>
+
+  <!-- html2canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
   <header>WARUNG I YOU</header>
@@ -138,7 +141,7 @@
     let totalIncome = parseInt(localStorage.getItem("totalIncome")) || 0;
     let history = JSON.parse(localStorage.getItem("history")) || [];
 
-    let tempItem = null; // untuk menyimpan item sementara sebelum memilih add-on/drink
+    let tempItem = null;
 
     function saveData() {
       localStorage.setItem("pesanan", JSON.stringify(pesanan));
@@ -312,58 +315,106 @@
       tempItem = null;
     }
 
-    null;
-    }
-    // Cetak bill
-    function printBill(index) {
+    // Fungsi Download Bill dengan html2canvas
+    function downloadBill(index) {
   const bill = selesai[index];
-  let printWindow = window.open("", "_blank");
-  printWindow.document.write(`
-    <html>
-    <head>
-      <title>Bill - ${bill.name}</title>
-      <style>
-        body { font-family: Arial, sans-serif; font-size:14px; }
-        .center { text-align:center; }
-        .line { border-top:1px dashed #000; margin:8px 0; }
-        ul { list-style:none; padding:0; margin:0; }
-        li { margin:4px 0; }
-        .total { font-weight:bold; font-size:16px; margin-top:10px; }
-      </style>
-    </head>
-    <body>
-      <div class="center">
+
+  // Buat container sementara untuk bill
+  const tempDiv = document.createElement("div");
+  tempDiv.style.position = "fixed";
+  tempDiv.style.left = "-9999px"; // sembunyikan
+  tempDiv.innerHTML = `
+    <div style="width:350px; font-family: Arial, sans-serif; font-size:14px; background:white; padding:15px;">
+      <div style="text-align:center;">
         <img src="https://raw.githubusercontent.com/Bardenss/Waroeng-i-you/main/Logo.png" width="80"><br>
         <b>PONDOK KULINER I YOU</b><br>
         Jl, Namu Ukur - Telagah - Tanjung Karo<br>
         Telp: 082164753151<br>
       </div>
-      <div class="line"></div>
+      <hr style="border-top:1px dashed #000; margin:8px 0;">
       <p>Tanggal: ${bill.time}</p>
       <p>No Bill: ${bill.name}</p>
-      <div class="line"></div>
-      <ul>
-        ${bill.items.map((i, idx)=>`
+      <hr style="border-top:1px dashed #000; margin:8px 0;">
+      <ul style="list-style:none; padding:0; margin:0;">
+        ${bill.items.map((i, idx) => `
           <li>${idx+1}. ${i.name}<br>
               ${i.qty} x ${formatRupiah(i.price)} 
               <span style="float:right;">${formatRupiah(i.price*i.qty)}</span>
           </li>
         `).join("")}
       </ul>
-      <div class="line"></div>
+      <hr style="border-top:1px dashed #000; margin:8px 0;">
       <p><b>Total Qty:</b> ${bill.items.reduce((sum,i)=>sum+i.qty,0)}</p>
       <p><b>Sub Total:</b> ${formatRupiah(bill.total)}</p>
-      <p class="total">Total: ${formatRupiah(bill.total)}</p>
+      <p style="font-weight:bold;">Total: ${formatRupiah(bill.total)}</p>
       <p>Bayar (Cash): ${formatRupiah(bill.total)}</p>
       <p>Kembali: Rp0</p>
-      <div class="line"></div>
-      <p class="center">Terimakasih Telah Berbelanja</p>
-    </body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.print();
+      <hr style="border-top:1px dashed #000; margin:8px 0;">
+      <p style="text-align:center;">Terimakasih Telah Berbelanja</p>
+    </div>
+  `;
+
+  document.body.appendChild(tempDiv);
+
+  html2canvas(tempDiv).then(canvas => {
+    const link = document.createElement("a");
+    link.download = `Bill-${index+1}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+    document.body.removeChild(tempDiv); // hapus container sementara
+  });
 }
+
+    // Cetak bill
+    function printBill(index) {
+      const bill = selesai[index];
+      let printWindow = window.open("", "_blank");
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Bill - ${bill.name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; font-size:14px; }
+            .center { text-align:center; }
+            .line { border-top:1px dashed #000; margin:8px 0; }
+            ul { list-style:none; padding:0; margin:0; }
+            li { margin:4px 0; }
+            .total { font-weight:bold; font-size:16px; margin-top:10px; }
+          </style>
+        </head>
+        <body>
+          <div class="center">
+            <img src="https://raw.githubusercontent.com/Bardenss/Waroeng-i-you/main/Logo.png" width="80"><br>
+            <b>PONDOK KULINER I YOU</b><br>
+            Jl, Namu Ukur - Telagah - Tanjung Karo<br>
+            Telp: 082164753151<br>
+          </div>
+          <div class="line"></div>
+          <p>Tanggal: ${bill.time}</p>
+          <p>No Bill: ${bill.name}</p>
+          <div class="line"></div>
+          <ul>
+            ${bill.items.map((i, idx)=>`
+              <li>${idx+1}. ${i.name}<br>
+                  ${i.qty} x ${formatRupiah(i.price)} 
+                  <span style="float:right;">${formatRupiah(i.price*i.qty)}</span>
+              </li>
+            `).join("")}
+          </ul>
+          <div class="line"></div>
+          <p><b>Total Qty:</b> ${bill.items.reduce((sum,i)=>sum+i.qty,0)}</p>
+          <p><b>Sub Total:</b> ${formatRupiah(bill.total)}</p>
+          <p class="total">Total: ${formatRupiah(bill.total)}</p>
+          <p>Bayar (Cash): ${formatRupiah(bill.total)}</p>
+          <p>Kembali: Rp0</p>
+          <div class="line"></div>
+          <p class="center">Terimakasih Telah Berbelanja</p>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
 
     function testMidnight() { resetMidnight(); }
 
@@ -423,6 +474,7 @@
       document.getElementById("historyList").innerHTML="";
       alert("Semua data berhasil dihapus!");
     }
+
     function showTab(tabId, btn) {
       document.querySelectorAll(".tab-content").forEach(tab => tab.classList.add("hidden"));
       document.getElementById(tabId).classList.remove("hidden");
